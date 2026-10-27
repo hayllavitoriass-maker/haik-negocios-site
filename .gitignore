@@ -49,3 +49,6 @@ next-env.d.ts
 
 # o exemplo de variáveis deve ser versionado
 !.env.example
+
+# configurações locais do Claude Code
+.claude/settings.local.json
