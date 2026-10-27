@@ -11,6 +11,8 @@ const ADMIN = { email: "admin.e2e@haik.local", name: "Admin E2E", password: "Sen
 let totpSecret = "";
 
 test.describe.configure({ mode: "serial" });
+// O fluxo cria o único administrador do banco de teste: roda uma vez, no projeto desktop.
+test.skip(({}, testInfo) => testInfo.project.name !== "desktop", "fluxo do painel só no desktop");
 
 async function login(page: Page) {
   await page.goto("/admin/login");
@@ -22,8 +24,8 @@ async function login(page: Page) {
 async function completeMfa(page: Page) {
   await expect(page).toHaveURL(/\/admin\/login\/mfa/);
   const code = new OTPAuth.TOTP({ secret: totpSecret, digits: 6, period: 30 }).generate();
-  await page.getByLabel(/código/i).first().fill(code);
-  await page.getByRole("button", { name: /confirmar|verificar|entrar/i }).click();
+  await page.getByLabel("Código").fill(code);
+  await page.getByRole("button", { name: "Confirmar", exact: true }).click();
 }
 
 test.describe("painel administrativo", () => {
@@ -38,8 +40,10 @@ test.describe("painel administrativo", () => {
     if (await confirm.count()) await confirm.fill(ADMIN.password);
     await page.getByRole("button", { name: /criar/i }).click();
     await expect(page).toHaveURL(/\/admin\/setup/);
-    await expect(page.getByText(/token/i).first()).toBeVisible();
+    await expect(page.getByRole("alert").filter({ hasText: /token/i })).toBeVisible();
 
+    // O formulário é remontado após o erro: recarrega antes da tentativa válida.
+    await page.goto("/admin/setup");
     await page.getByLabel(/token/i).fill("e2e-setup-token");
     await page.getByLabel("Nome").fill(ADMIN.name);
     await page.getByLabel("E-mail").fill(ADMIN.email);
@@ -61,12 +65,13 @@ test.describe("painel administrativo", () => {
 
     await login(page);
     await expect(page).toHaveURL(/\/admin\/seguranca\/ativar-mfa/);
-    // Chave manual exibida na tela de ativação (base32).
-    const key = await page.locator("code, [data-secret]").filter({ hasText: /^[A-Z2-7 ]{16,}$/ }).first().innerText();
+    await page.getByRole("button", { name: "Gerar QR code" }).click();
+    // Chave manual exibida na tela de ativação (base32 em grupos de 4).
+    const key = await page.locator("code").filter({ hasText: /^[A-Z2-7 ]{16,}$/ }).first().innerText();
     totpSecret = key.replace(/\s+/g, "");
     const code = new OTPAuth.TOTP({ secret: totpSecret, digits: 6, period: 30 }).generate();
-    await page.getByLabel(/código/i).first().fill(code);
-    await page.getByRole("button", { name: /ativar|confirmar/i }).click();
+    await page.getByLabel("Código de 6 dígitos do aplicativo").fill(code);
+    await page.getByRole("button", { name: "Confirmar e ativar" }).click();
     await expect(page.getByText(/recupera/i).first()).toBeVisible();
   });
 
@@ -93,7 +98,9 @@ test.describe("painel administrativo", () => {
   test("conteúdo: rascunho não vaza, publicação aparece no site", async ({ page }) => {
     await login(page);
     await completeMfa(page);
+    await expect(page).toHaveURL(/\/admin(\?.*)?$/);
     await page.goto("/admin/conteudo/contact");
+    await expect(page).toHaveURL(/\/admin\/conteudo\/contact/);
     const title = page.getByLabel("Título").first();
     await title.fill("Vamos conversar sobre o seu negócio (E2E)");
     await page.getByRole("button", { name: /salvar rascunho/i }).click();

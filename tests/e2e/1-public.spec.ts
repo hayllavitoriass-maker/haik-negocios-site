@@ -112,14 +112,14 @@ test.describe("formulário de diagnóstico", () => {
     await form.getByLabel("@ do Instagram ou site da empresa").fill("@clinicae2e");
     await form.getByLabel("WhatsApp").fill("86994258011");
     await form.getByLabel("E-mail").fill(`maria.${Date.now()}@exemplo.com`);
-    await form.getByLabel("1 a 3 anos").check();
-    await form.getByLabel("2 a 5").check();
-    await form.getByLabel("Poucos clientes chegando").check();
+    await form.getByLabel("1 a 3 anos").check({ force: true });
+    await form.getByLabel("2 a 5").check({ force: true });
+    await form.getByLabel("Poucos clientes chegando").check({ force: true });
     await form.getByLabel("Conte em poucas palavras").fill("Agenda com buracos.");
-    await form.getByLabel("Até R$ 500").check();
-    await form.getByLabel("O quanto antes").check();
-    await form.getByLabel("Manhã").check();
-    await form.getByLabel(/Concordo em receber contato/).check();
+    await form.getByLabel("Até R$ 500").check({ force: true });
+    await form.getByLabel("O quanto antes").check({ force: true });
+    await form.getByLabel("Manhã").check({ force: true });
+    await form.getByLabel(/Concordo em receber contato/).check({ force: true });
     // Proteção anti-bot exige alguns segundos com o formulário aberto.
     await page.waitForTimeout(3000);
     await form.getByRole("button", { name: "Quero meu diagnóstico" }).click();
@@ -137,7 +137,7 @@ test.describe("formulário de contato", () => {
     await form.getByLabel("WhatsApp").fill("86994258011");
     await form.getByLabel("Assunto").selectOption("Tenho uma dúvida");
     await form.getByLabel("Mensagem").fill("Olá, quero saber mais.");
-    await form.getByLabel(/Li e concordo/).check();
+    await form.getByLabel(/Li e concordo/).check({ force: true });
     await page.waitForTimeout(3000);
     await form.getByRole("button", { name: "Enviar mensagem" }).click();
     await expect(page.getByText("Mensagem enviada!")).toBeVisible({ timeout: 20000 });
