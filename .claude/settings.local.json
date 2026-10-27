@@ -12,7 +12,9 @@
       "Bash(echo \"build exit=$?\")",
       "Bash(cp __TRACKED_VAR__/Tiles.draft.tsx src/components/three/Tiles.tsx)",
       "Bash(cp __TRACKED_VAR__/Stage.draft.tsx src/components/three/Stage.tsx)",
-      "Bash(npx eslint *)"
+      "Bash(npx eslint *)",
+      "Bash(awk '{print $6,$7,$8}')",
+      "Bash(MSYS_NO_PATHCONV=1 node scripts/lighthouse.mjs http://localhost:3101 / /diagnostico /servicos/sites /contato)"
     ]
   }
 }

@@ -88,10 +88,12 @@ export class TileMotion {
 
     if (params.portrait) {
       // faixa inferior (~40% da tela): achata em y e z, afasta e reduz
-      p.x *= 0.8;
-      p.y = p.y * 0.28 - 0.45;
-      p.z = p.z * 0.35 - 2.5;
-      this.blendScale *= 0.68 - 0.12 * low;
+      // Em páginas internas (presença baixa) vai mais para trás e para a direita, para não
+      // ficar sob o texto corrido que rola por cima.
+      p.x = p.x * 0.8 + 1.4 * low;
+      p.y = p.y * 0.28 - 0.45 - 0.6 * low;
+      p.z = p.z * 0.35 - 2.5 - 4 * low;
+      this.blendScale *= 0.68 - 0.24 * low;
     } else if (low > 0) {
       // centro-alvo no terço direito: ~68% do meio-largura visível à profundidade ~15
       const depth = 15;

@@ -58,8 +58,11 @@ export function SplitHeading({ as: Tag = "h2", id, className, text, highlight, m
         onSplit: (self) => {
           const targets = mode === "chars" ? self.chars : self.words;
           gsap.set(el, { visibility: "visible" });
+          // Blur por caractere é caro em telas de toque/GPUs fracas: só no desktop.
+          const coarse = window.matchMedia("(pointer: coarse)").matches;
           return gsap.from(targets, {
             ...CHARS_IN,
+            filter: coarse ? "blur(0px)" : CHARS_IN.filter,
             stagger: mode === "chars" ? CHARS_IN.stagger : 0.04,
             delay,
             scrollTrigger: immediate
