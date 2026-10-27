@@ -46,3 +46,6 @@ next-env.d.ts
 /playwright-report
 /lighthouse
 .env*.local
+
+# o exemplo de variáveis deve ser versionado
+!.env.example

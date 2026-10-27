@@ -146,7 +146,10 @@ npm run test:e2e
 ```
 
 - `test`: Vitest (validação, conteúdo, criptografia/TOTP e integração com banco PGlite em memória: gravação de leads, duplicidade, honeypot, rate limit).
-- `test:e2e`: Playwright contra `next start` com banco isolado em `./data/e2e` (rode `npm run build` antes).
+- `test:e2e`: Playwright contra `next start` com banco isolado e recriado em `./data/e2e` (rode `npm run build` antes e `npx playwright install chromium` uma vez). Cobre todas as rotas públicas em desktop e mobile (sem overflow, sem erros de JS, CSP), o 404, o formulário de diagnóstico até `/obrigado`, o formulário de contato, o modo sem animações e o fluxo completo do painel (setup → login → MFA → leads → editor → publicação).
+- `lighthouse`: `node scripts/lighthouse.mjs http://localhost:3101` com o servidor de produção no ar (relatórios em `./lighthouse`).
+
+> **PGlite é de processo único.** Com o servidor rodando no modo embutido, os scripts de linha de comando (`admin:create`, `data:prune`...) não conseguem abrir o mesmo banco: pare o servidor antes, ou use `DATABASE_URL` (Postgres), onde não há essa limitação.
 
 ## Publicar em produção
 
