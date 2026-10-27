@@ -1,6 +1,6 @@
 "use client";
 
-import { Component, Suspense, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
+import { Component, Suspense, useCallback, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
 import { Canvas, useThree } from "@react-three/fiber";
 import { PerformanceMonitor } from "@react-three/drei";
 import { CameraRig } from "./CameraRig";
@@ -15,23 +15,20 @@ import "./stage.css";
  * Cena WebGL persistente (React Three Fiber), montada uma vez pelo SiteShell e fixa atrás
  * de todo o conteúdo. Lê o estado de `stage-store` e reage a formação/tema/progresso.
  * Sem WebGL, com a cena desligada ou em erro: composição estática em CSS.
+ *
+ * Inicialização em passos curtos (nenhuma tarefa longa na thread principal):
+ * 1. monta a cena com `frameloop="never"` (nenhum frame síncrono ainda);
+ * 2. ambiente procedural (PMREM com shaders pré-linkados) + fog + primeiro tile entram na cena;
+ * 3. `gl.compileAsync` compila todos os shaders em paralelo (KHR_parallel_shader_compile);
+ * 4. só então o loop liga e o canvas faz o fade-in; os ícones restantes chegam em callbacks
+ *    ociosos (ver Tiles.tsx), invisíveis sob o fade.
  */
 const MAX_DPR = 1.75;
 
-/**
- * WebGL disponível E acelerado por hardware. Renderizadores por software (SwiftShader,
- * llvmpipe) não entregam a cena com fluidez: nesses casos usamos a composição em CSS.
- */
 function detectWebGL(): boolean {
   try {
     const canvas = document.createElement("canvas");
-    const gl = (canvas.getContext("webgl2") || canvas.getContext("webgl")) as WebGLRenderingContext | null;
-    if (!gl) return false;
-    const info = gl.getExtension("WEBGL_debug_renderer_info");
-    const renderer = info ? String(gl.getParameter(info.UNMASKED_RENDERER_WEBGL)) : "";
-    if (/swiftshader|llvmpipe|software|mesa offscreen/i.test(renderer)) return false;
-    gl.getExtension("WEBGL_lose_context")?.loseContext();
-    return true;
+    return !!(canvas.getContext("webgl2") || canvas.getContext("webgl"));
   } catch {
     return false;
   }
@@ -88,6 +85,33 @@ function DemandInvalidator() {
   return null;
 }
 
+/**
+ * Compila os shaders de tudo que já está na cena sem bloquear a thread principal e avisa
+ * quando terminou. Fica por ÚLTIMO entre os filhos: os efeitos dos irmãos (ambiente, fog,
+ * primeiro tile) já rodaram quando o deste componente roda.
+ */
+function ShaderWarmup({ enabled, onDone }: { enabled: boolean; onDone: () => void }) {
+  const gl = useThree((s) => s.gl);
+  const scene = useThree((s) => s.scene);
+  const camera = useThree((s) => s.camera);
+  useEffect(() => {
+    if (!enabled) return;
+    let cancelled = false;
+    const finish = () => {
+      if (!cancelled) onDone();
+    };
+    // próxima macrotarefa: deixa o PMREM e as inserções na cena assentarem antes de compilar
+    const id = window.setTimeout(() => {
+      gl.compileAsync(scene, camera).then(finish, finish);
+    }, 0);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(id);
+    };
+  }, [enabled, gl, scene, camera, onDone]);
+  return null;
+}
+
 class StageBoundary extends Component<{ fallback: ReactNode; children: ReactNode }, { failed: boolean }> {
   state = { failed: false };
   static getDerivedStateFromError() {
@@ -102,10 +126,22 @@ class StageBoundary extends Component<{ fallback: ReactNode; children: ReactNode
 }
 
 function StageCanvas({ reduced, portrait, coarse, hidden }: { reduced: boolean; portrait: boolean; coarse: boolean; hidden: boolean }) {
+  const [envReady, setEnvReady] = useState(false);
+  const [compiled, setCompiled] = useState(false);
   const [ready, setReady] = useState(false);
   const [dpr, setDpr] = useState(() => Math.min(window.devicePixelRatio || 1, MAX_DPR));
   const config = useMemo<StageConfig>(() => ({ count: tileCount(portrait, coarse), portrait, reduced, coarse }), [portrait, reduced, coarse]);
-  const frameloop = reduced || hidden ? "demand" : "always";
+  const onEnvReady = useCallback(() => setEnvReady(true), []);
+  const onCompiled = useCallback(() => setCompiled(true), []);
+
+  // fade-in só depois dos shaders prontos (o primeiro frame visível já é completo)
+  useEffect(() => {
+    if (!compiled) return;
+    const id = window.setTimeout(() => setReady(true), 80);
+    return () => window.clearTimeout(id);
+  }, [compiled]);
+
+  const frameloop = !compiled ? "never" : reduced || hidden ? "demand" : "always";
 
   return (
     <div className={ready ? "stage is-ready" : "stage"} aria-hidden="true">
@@ -115,8 +151,6 @@ function StageCanvas({ reduced, portrait, coarse, hidden }: { reduced: boolean; 
         frameloop={frameloop}
         gl={{ antialias: true, powerPreference: "high-performance", alpha: true, stencil: false }}
         camera={{ fov: 40, near: 0.1, far: 160, position: [0, 2.2, 9] }}
-        // setTimeout (não rAF): a transição de opacidade começa mesmo com frames throttled
-        onCreated={() => window.setTimeout(() => setReady(true), 60)}
       >
         <StageConfigContext.Provider value={config}>
           <PerformanceMonitor
@@ -127,9 +161,10 @@ function StageCanvas({ reduced, portrait, coarse, hidden }: { reduced: boolean; 
           />
           <DemandInvalidator />
           <Suspense fallback={null}>
-            <Environment />
+            <Environment onReady={onEnvReady} />
             <Tiles />
             <CameraRig />
+            <ShaderWarmup enabled={envReady} onDone={onCompiled} />
           </Suspense>
         </StageConfigContext.Provider>
       </Canvas>
@@ -138,19 +173,14 @@ function StageCanvas({ reduced, portrait, coarse, hidden }: { reduced: boolean; 
 }
 
 export function Stage() {
-  const [support, setSupport] = useState<"unknown" | "ok" | "none">("unknown");
+  // Só existe no cliente (next/dynamic ssr:false): a detecção pode rodar no primeiro render.
+  const [support] = useState<"ok" | "none">(() => (detectWebGL() ? "ok" : "none"));
   const enabled = useStageKey("enabled");
   const reduced = useMediaFlag("(prefers-reduced-motion: reduce)");
   const coarse = useMediaFlag("(pointer: coarse)");
   const portrait = usePortrait();
   const hidden = useDocumentHidden();
 
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- estado só conhecido no navegador, aplicado após a hidratação
-    setSupport(detectWebGL() ? "ok" : "none");
-  }, []);
-
-  if (support === "unknown") return null;
   if (support === "none" || !enabled) return <StageFallback />;
 
   return (

@@ -52,11 +52,14 @@ export class TileMotion {
     readonly count: number,
     readonly seeds: TileSeeds,
     initial: Formation,
+    /** Instante (s) em que o tile nasce: a entrada respeita o atraso por índice a partir daí. */
+    startAt = 0,
   ) {
     const u = count > 1 ? index / (count - 1) : 0;
     this.delay = 0.5 * (0.75 * u + 0.25 * seeds.c);
     this.weights = Object.fromEntries(FORMATIONS.map((f) => [f, 0])) as Record<Formation, number>;
     this.target = initial;
+    this.switchedAt = startAt;
   }
 
   get formation() {

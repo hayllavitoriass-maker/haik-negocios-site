@@ -9,7 +9,10 @@
       "Bash(node -e ' *)",
       "Bash(mkdir -p data/lh)",
       "Bash(PGLITE_DATA_DIR=./data/lh APP_SECRET=lh-secret-with-at-least-32-characters-ok NEXT_PUBLIC_SITE_URL=http://localhost:3101 NODE_ENV=production npm run build)",
-      "Bash(echo \"build exit=$?\")"
+      "Bash(echo \"build exit=$?\")",
+      "Bash(cp __TRACKED_VAR__/Tiles.draft.tsx src/components/three/Tiles.tsx)",
+      "Bash(cp __TRACKED_VAR__/Stage.draft.tsx src/components/three/Stage.tsx)",
+      "Bash(npx eslint *)"
     ]
   }
 }

@@ -10,19 +10,20 @@ import {
   Fog,
   InstancedMesh,
   Object3D,
-  PMREMGenerator,
   PlaneGeometry,
   PointsMaterial,
   ShaderMaterial,
+  type WebGLRenderTarget,
 } from "three";
-import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { FLOOR_Y } from "./formations";
 import { useStageConfig } from "./stage-config";
 import { getStage } from "./stage-store";
+import { pmremFromEquirectangularAsync } from "./pmrem-warmup";
+import { createStudioEnvironment } from "./studio-env";
 
 /**
- * Ambiente: RoomEnvironment via PMREM (reflexos do clearcoat, sem HDR externo), halo
+ * Ambiente: estúdio procedural via PMREM (reflexos do clearcoat, sem HDR externo), halo
  * vermelho radial, chão em grade com cruzes "+" instanciadas, poeira esparsa e névoa na cor
  * do fundo. O fundo do canvas é transparente (a cor vem do CSS); só o tom do ambiente é
  * interpolado por tema, com amortecimento.
@@ -150,23 +151,46 @@ function createDustGeometry(count: number): BufferGeometry {
   return g;
 }
 
-export function Environment() {
+export function Environment({ onReady }: { onReady: () => void }) {
   const { gl, scene } = useThree();
   const { coarse, reduced } = useStageConfig();
 
-  // Iluminação baseada em imagem: sala procedural → PMREM. Sem rede, sem HDR.
+  // Iluminação baseada em imagem: estúdio procedural (equiretangular 256×128 em canvas) →
+  // PMREM com shaders pré-linkados em paralelo (nenhuma tarefa longa). Avisa quando o
+  // ambiente está na cena, para a compilação dos materiais incluir o envMap.
   useEffect(() => {
-    const pmrem = new PMREMGenerator(gl);
-    const room = new RoomEnvironment();
-    const target = pmrem.fromScene(room, 0.04);
-    scene.environment = target.texture;
-    room.dispose();
-    pmrem.dispose();
+    const equirect = createStudioEnvironment();
+    if (!equirect) {
+      onReady();
+      return;
+    }
+    let cancelled = false;
+    let target: WebGLRenderTarget | null = null;
+    pmremFromEquirectangularAsync(gl, equirect).then(
+      (result) => {
+        equirect.dispose();
+        result.pmrem.dispose();
+        if (cancelled) {
+          result.target.dispose();
+          return;
+        }
+        target = result.target;
+        scene.environment = target.texture;
+        onReady();
+      },
+      () => {
+        equirect.dispose();
+        if (!cancelled) onReady();
+      },
+    );
     return () => {
-      if (scene.environment === target.texture) scene.environment = null;
-      target.dispose();
+      cancelled = true;
+      if (target) {
+        if (scene.environment === target.texture) scene.environment = null;
+        target.dispose();
+      }
     };
-  }, [gl, scene]);
+  }, [gl, scene, onReady]);
 
   const fog = useMemo(() => new Fog(getStage().theme === "dark" ? DARK_BG.clone() : LIGHT_BG.clone(), 16, 44), []);
   useEffect(() => {

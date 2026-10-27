@@ -145,6 +145,7 @@ export function SceneLayer({ in: dataIn, out = 1, className, children, as: Tag =
     const y = trigger.scroll();
     if (y >= trigger.start && y <= trigger.end) enter();
     else if (y > trigger.end) layer.classList.add("is-past");
+    else layer.classList.remove("is-in"); // veio visível do SSR (in=0) mas a cena ainda está abaixo
     return () => {
       trigger.kill();
       layer.removeAttribute("inert");
