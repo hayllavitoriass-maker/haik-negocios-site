@@ -12,7 +12,9 @@ let totpSecret = "";
 
 test.describe.configure({ mode: "serial" });
 // O fluxo cria o único administrador do banco de teste: roda uma vez, no projeto desktop.
-test.skip(({}, testInfo) => testInfo.project.name !== "desktop", "fluxo do painel só no desktop");
+test.beforeEach(({}, testInfo) => {
+  testInfo.skip(testInfo.project.name !== "desktop", "fluxo do painel só no desktop");
+});
 
 async function login(page: Page) {
   await page.goto("/admin/login");

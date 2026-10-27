@@ -21,6 +21,19 @@ const ROUTES = [
   "/termos",
 ];
 
+/** Marca uma opção (rádio/checkbox customizado) clicando no rótulo, centralizado na tela. */
+async function pick(scope: import("@playwright/test").Locator, text: string | RegExp) {
+  const label = scope.locator("label").filter({ hasText: text }).first();
+  await label.evaluate((el) => el.scrollIntoView({ block: "center" }));
+  const checkbox = label.locator('input[type="checkbox"]');
+  if (await checkbox.count()) {
+    // O rótulo do consentimento contém um link: marca o checkbox em si.
+    await checkbox.check({ force: true });
+    return;
+  }
+  await label.click();
+}
+
 async function dismissCookies(page: Page) {
   const accept = page.getByRole("button", { name: "Só o essencial" });
   if (await accept.isVisible().catch(() => false)) await accept.click();
@@ -97,6 +110,7 @@ test.describe("páginas públicas", () => {
 });
 
 test.describe("formulário de diagnóstico", () => {
+  test.use({ reducedMotion: "reduce" });
   test("valida campos e envia para /obrigado", async ({ page }) => {
     await page.goto("/diagnostico");
     await dismissCookies(page);
@@ -112,14 +126,14 @@ test.describe("formulário de diagnóstico", () => {
     await form.getByLabel("@ do Instagram ou site da empresa").fill("@clinicae2e");
     await form.getByLabel("WhatsApp").fill("86994258011");
     await form.getByLabel("E-mail").fill(`maria.${Date.now()}@exemplo.com`);
-    await form.getByLabel("1 a 3 anos").check({ force: true });
-    await form.getByLabel("2 a 5").check({ force: true });
-    await form.getByLabel("Poucos clientes chegando").check({ force: true });
+    await pick(form, "1 a 3 anos");
+    await pick(form, "2 a 5");
+    await pick(form, "Poucos clientes chegando");
     await form.getByLabel("Conte em poucas palavras").fill("Agenda com buracos.");
-    await form.getByLabel("Até R$ 500").check({ force: true });
-    await form.getByLabel("O quanto antes").check({ force: true });
-    await form.getByLabel("Manhã").check({ force: true });
-    await form.getByLabel(/Concordo em receber contato/).check({ force: true });
+    await pick(form, "Até R$ 500");
+    await pick(form, "O quanto antes");
+    await pick(form, "Manhã");
+    await pick(form, /Concordo em receber contato/);
     // Proteção anti-bot exige alguns segundos com o formulário aberto.
     await page.waitForTimeout(3000);
     await form.getByRole("button", { name: "Quero meu diagnóstico" }).click();
@@ -129,6 +143,7 @@ test.describe("formulário de diagnóstico", () => {
 });
 
 test.describe("formulário de contato", () => {
+  test.use({ reducedMotion: "reduce" });
   test("envia mensagem com sucesso", async ({ page }) => {
     await page.goto("/contato");
     await dismissCookies(page);
@@ -137,7 +152,7 @@ test.describe("formulário de contato", () => {
     await form.getByLabel("WhatsApp").fill("86994258011");
     await form.getByLabel("Assunto").selectOption("Tenho uma dúvida");
     await form.getByLabel("Mensagem").fill("Olá, quero saber mais.");
-    await form.getByLabel(/Li e concordo/).check({ force: true });
+    await pick(form, /Li e concordo/);
     await page.waitForTimeout(3000);
     await form.getByRole("button", { name: "Enviar mensagem" }).click();
     await expect(page.getByText("Mensagem enviada!")).toBeVisible({ timeout: 20000 });
