@@ -25,7 +25,7 @@ export function FieldShell({
     <div className={cn("grid gap-2", className)}>
       <label htmlFor={id} className="text-[14px] font-medium text-[var(--fg)]">
         {label}
-        {optional && <span className="ml-1 text-[12px] font-normal text-grey-400">(opcional)</span>}
+        {optional && <span className="ml-1 text-[12px] font-normal text-grey-500">(opcional)</span>}
       </label>
       {children}
       {hint && !error && (

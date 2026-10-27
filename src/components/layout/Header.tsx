@@ -82,9 +82,9 @@ export function Header() {
           className="ml-auto inline-flex h-10 items-center gap-2 pr-1 desk:hidden"
           aria-expanded={open}
           aria-controls="mobile-menu"
-          aria-label={open ? "Fechar menu" : "Abrir menu"}
           onClick={() => setOpen((v) => !v)}
         >
+          <span className="visually-hidden">{open ? "Fechar menu" : "Abrir menu"}</span>
           <span className="mono rounded-xs bg-red px-[5px] pt-1 pb-[3px] text-[10px] text-white">{chapterIndex}</span>
           <span className="inline-flex h-7 items-center gap-2.5 rounded-xs bg-[rgba(127,127,127,.12)] px-2.5 shadow-[inset_0_0_0_1px_var(--hairline)]">
             <span className="mono text-[10px]">{active?.label ?? "Menu"}</span>

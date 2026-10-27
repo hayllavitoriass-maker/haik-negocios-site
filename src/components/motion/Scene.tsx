@@ -6,6 +6,7 @@ import { cn } from "@/lib/cn";
 import { useChapters } from "./ChapterProvider";
 import { useMotion } from "./MotionProvider";
 import { setStage, type Formation, type StageTheme } from "@/components/three/stage-store";
+import { useNearViewport } from "@/hooks/useNearViewport";
 
 /**
  * Cena sticky: a seção tem N viewports de altura e um frame fixo de 100svh.
@@ -96,11 +97,12 @@ export function SceneLayer({ in: dataIn, out = 1, className, children, as: Tag =
   const scene = useContext(SceneContext);
   const ref = useRef<HTMLDivElement | null>(null);
   const { staticScenes } = useMotion();
+  const near = useNearViewport(scene?.el ?? ref);
 
   useEffect(() => {
     const layer = ref.current;
     const sceneEl = scene?.el.current;
-    if (!layer || !sceneEl) return;
+    if (!layer || !sceneEl || !near) return;
     if (staticScenes) {
       layer.classList.add("is-in");
       layer.classList.remove("is-past");
@@ -147,10 +149,11 @@ export function SceneLayer({ in: dataIn, out = 1, className, children, as: Tag =
       trigger.kill();
       layer.removeAttribute("inert");
     };
-  }, [scene, dataIn, out, staticScenes, alwaysInteractive]);
+  }, [scene, dataIn, out, staticScenes, alwaysInteractive, near]);
 
+  // A primeira camada já vem visível do servidor (LCP e sem JS); o ScrollTrigger assume depois.
   return (
-    <Tag ref={ref as React.RefObject<HTMLDivElement>} className={cn("scene__layer", className)} data-in={dataIn} data-out={out}>
+    <Tag ref={ref as React.RefObject<HTMLDivElement>} className={cn("scene__layer", dataIn === 0 && "is-in", className)} data-in={dataIn} data-out={out}>
       {children}
     </Tag>
   );
@@ -164,9 +167,11 @@ export function useSceneProgress(from: number, to: number, onProgress: (p: numbe
   const scene = useContext(SceneContext);
   const onProgressEvent = useEffectEvent(onProgress);
   const { staticScenes } = useMotion();
+  const fallbackRef = useRef<HTMLElement | null>(null);
+  const near = useNearViewport(scene?.el ?? fallbackRef);
   useEffect(() => {
     const sceneEl = scene?.el.current;
-    if (!sceneEl) return;
+    if (!sceneEl || !near) return;
     if (staticScenes) {
       onProgressEvent(1);
       return;
@@ -180,5 +185,5 @@ export function useSceneProgress(from: number, to: number, onProgress: (p: numbe
       onUpdate: (self) => onProgressEvent(self.progress),
     });
     return () => trigger.kill();
-  }, [scene, from, to, staticScenes]);
+  }, [scene, from, to, staticScenes, near]);
 }

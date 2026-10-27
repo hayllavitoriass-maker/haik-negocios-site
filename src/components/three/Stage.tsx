@@ -18,10 +18,20 @@ import "./stage.css";
  */
 const MAX_DPR = 1.75;
 
+/**
+ * WebGL disponível E acelerado por hardware. Renderizadores por software (SwiftShader,
+ * llvmpipe) não entregam a cena com fluidez: nesses casos usamos a composição em CSS.
+ */
 function detectWebGL(): boolean {
   try {
     const canvas = document.createElement("canvas");
-    return !!(canvas.getContext("webgl2") || canvas.getContext("webgl"));
+    const gl = (canvas.getContext("webgl2") || canvas.getContext("webgl")) as WebGLRenderingContext | null;
+    if (!gl) return false;
+    const info = gl.getExtension("WEBGL_debug_renderer_info");
+    const renderer = info ? String(gl.getParameter(info.UNMASKED_RENDERER_WEBGL)) : "";
+    if (/swiftshader|llvmpipe|software|mesa offscreen/i.test(renderer)) return false;
+    gl.getExtension("WEBGL_lose_context")?.loseContext();
+    return true;
   } catch {
     return false;
   }

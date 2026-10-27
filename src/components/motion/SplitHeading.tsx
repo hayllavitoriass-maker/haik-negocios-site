@@ -34,7 +34,21 @@ export function SplitHeading({ as: Tag = "h2", id, className, text, highlight, m
     const el = ref.current;
     if (!el || staticScenes) return;
     let split: SplitText | null = null;
-    const ctx = gsap.context(() => {
+    let ctx: ReturnType<typeof gsap.context> | null = null;
+    // Dividir em letras custa layout: só fazemos quando o título está perto de aparecer.
+    const observer = immediate
+      ? null
+      : new IntersectionObserver(
+          (entries) => {
+            if (entries.some((e) => e.isIntersecting)) {
+              observer?.disconnect();
+              run();
+            }
+          },
+          { rootMargin: "120% 0px" },
+        );
+    const run = () => {
+    ctx = gsap.context(() => {
       split = SplitText.create(el, {
         type: mode === "chars" ? "lines,words,chars" : "lines,words",
         linesClass: "emerge-line",
@@ -55,8 +69,12 @@ export function SplitHeading({ as: Tag = "h2", id, className, text, highlight, m
         },
       });
     }, el);
+    };
+    if (immediate) run();
+    else observer?.observe(el);
     return () => {
-      ctx.revert();
+      observer?.disconnect();
+      ctx?.revert();
       split?.revert();
     };
   }, [text, mode, immediate, delay, staticScenes]);

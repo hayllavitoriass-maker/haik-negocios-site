@@ -185,7 +185,7 @@ function buildStroke(stroke: Stroke, parts: BufferGeometry[]) {
   if (v.length < 2) return;
   if (stroke.kind === "curve") {
     const path = new CatmullRomCurve3(v, !!stroke.closed, "centripetal");
-    parts.push(new TubeGeometry(path, Math.max(8, v.length * 4), r, 7, !!stroke.closed));
+    parts.push(new TubeGeometry(path, Math.max(6, v.length * 3), r, 6, !!stroke.closed));
     if (!stroke.closed) {
       parts.push(cap(v[0], r), cap(v[v.length - 1], r));
     }
@@ -196,7 +196,7 @@ function buildStroke(stroke: Stroke, parts: BufferGeometry[]) {
     const a = v[i];
     const b = v[(i + 1) % v.length];
     if (a.distanceToSquared(b) < 1e-10) continue;
-    parts.push(new TubeGeometry(new LineCurve3(a, b), 1, r, 7, false));
+    parts.push(new TubeGeometry(new LineCurve3(a, b), 1, r, 6, false));
   }
   // esferas em todas as juntas e pontas: cantos e caps redondos como no ícone 2D
   for (const p of v) parts.push(cap(p, r));

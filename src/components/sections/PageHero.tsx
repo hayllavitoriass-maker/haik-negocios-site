@@ -39,7 +39,7 @@ export function PageHero({ eyebrow, title, highlight, intro, actions, aside, siz
         <div className={cn("grid gap-10 desk:gap-16", aside ? "desk:grid-cols-[minmax(0,1.25fr)_minmax(0,.75fr)] desk:items-end" : undefined)}>
           <div className="grid content-start gap-7">
             {eyebrow && (
-              <Reveal y={16}>
+              <Reveal eager y={16}>
                 <Label index={eyebrow.index} text={eyebrow.text} />
               </Reveal>
             )}
@@ -52,19 +52,19 @@ export function PageHero({ eyebrow, title, highlight, intro, actions, aside, siz
               className={cn(size === "hero" ? "text-hero" : "text-beat", "max-w-[13em] text-balance")}
             />
             {intro && (
-              <Reveal y={24} delay={0.5}>
+              <Reveal eager y={24} delay={0.5}>
                 <p className="max-w-[58ch] text-intro text-grey-300">{intro}</p>
               </Reveal>
             )}
             {actions && (
-              <Reveal y={20} delay={0.65} className="flex flex-wrap items-center gap-3 pt-2">
+              <Reveal eager y={20} delay={0.65} className="flex flex-wrap items-center gap-3 pt-2">
                 {actions}
               </Reveal>
             )}
             {children}
           </div>
           {aside && (
-            <Reveal y={32} delay={0.4} className="min-w-0">
+            <Reveal eager y={32} delay={0.4} className="min-w-0">
               {aside}
             </Reveal>
           )}

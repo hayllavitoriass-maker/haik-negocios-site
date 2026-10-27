@@ -74,8 +74,8 @@ export function Footer({ content, settings }: Props) {
           </div>
         </div>
       </div>
-      <div className="brand-mark container-haik text-[22vw] text-white/[0.07]" aria-hidden="true">
-        <span className="-ml-[.04em] inline-block">HAIK</span>
+      <div className="brand-mark container-haik text-[22vw]" aria-hidden="true">
+        <span className="-ml-[.04em] inline-block bg-[linear-gradient(180deg,rgba(255,255,255,.09),rgba(255,255,255,.03))] bg-clip-text text-transparent">HAIK</span>
       </div>
     </footer>
   );

@@ -5,17 +5,19 @@
  * Gera relatórios HTML em ./lighthouse e imprime as notas.
  */
 import { mkdir, writeFile } from "node:fs/promises";
-import { launch } from "chrome-launcher";
 import lighthouse from "lighthouse";
 import { chromium } from "@playwright/test";
 
 const [baseUrl = "http://localhost:3101", ...routes] = process.argv.slice(2);
 const pages = routes.length ? routes : ["/", "/diagnostico", "/servicos/sites", "/metodo", "/sobre", "/contato"];
 
-const chrome = await launch({
-  chromePath: chromium.executablePath(),
-  chromeFlags: ["--headless=new", "--no-sandbox", "--disable-gpu", "--use-gl=swiftshader", "--enable-unsafe-swiftshader"],
+// Lança o Chromium do Playwright com porta de depuração (chrome-launcher não funciona em todo ambiente).
+const PORT = 9333;
+const browser = await chromium.launch({
+  headless: true,
+  args: [`--remote-debugging-port=${PORT}`, "--no-sandbox", "--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"],
 });
+const chrome = { port: PORT, kill: () => browser.close() };
 
 await mkdir("lighthouse", { recursive: true });
 const rows = [];

@@ -78,7 +78,8 @@ export function FocusText({ text, keys, className, as: Tag = "p", id }: Props) {
   }, [tokens, staticScenes]);
 
   return (
-    <Tag ref={ref as React.RefObject<HTMLParagraphElement>} id={id} className={cn("focus-text", className)} aria-label={text}>
+    <Tag ref={ref as React.RefObject<HTMLParagraphElement>} id={id} className={cn("focus-text", className)}>
+      <span className="visually-hidden">{text}</span>
       <span aria-hidden="true">
         {tokens.map((t, i) =>
           /^\s+$/.test(t.text) ? (
