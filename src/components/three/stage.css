@@ -1,0 +1,64 @@
+/* Cena 3D persistente: fixa atrás de todo o conteúdo, sem eventos de ponteiro. */
+.stage {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.stage.is-ready {
+  opacity: 1;
+}
+.stage canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Fallback em CSS (sem WebGL / cena desligada / erro) */
+.stage-fallback {
+  overflow: hidden;
+  opacity: calc(0.55 + 0.45 * var(--presence, 0.6));
+}
+.stage-fallback__halo {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(60% 50% at 80% 20%, rgba(234, 25, 35, 0.3), rgba(234, 25, 35, 0) 70%);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.stage-fallback[data-theme="light"] .stage-fallback__halo {
+  opacity: 0.4;
+}
+.stage-fallback__tile {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  translate: -50% -50%;
+  border-radius: 6%;
+  color: #fefefe;
+  background: linear-gradient(225deg, #ffe4e6 0%, #ff7a82 16%, #ea1923 52%, #9e0f16 100%);
+  box-shadow:
+    0 18px 30px rgba(234, 25, 35, 0.35),
+    inset 0 -4px rgba(0, 0, 0, 0.14);
+  animation: stage-float 7s ease-in-out infinite alternate;
+  will-change: transform;
+}
+.stage-fallback[data-theme="light"] .stage-fallback__tile {
+  box-shadow:
+    0 18px 30px rgba(234, 25, 35, 0.2),
+    inset 0 -4px rgba(0, 0, 0, 0.1);
+}
+@keyframes stage-float {
+  from {
+    transform: translateY(0) rotate(-5deg);
+  }
+  to {
+    transform: translateY(-18px) rotate(5deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stage-fallback__tile {
+    animation: none;
+  }
+}
