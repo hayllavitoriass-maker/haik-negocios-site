@@ -54,7 +54,9 @@ export function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     {
-      source: "/((?!_next/static|_next/image|media/|favicon.ico|icon|apple-icon|robots.txt|sitemap.xml|manifest.webmanifest).*)",
+      // Arquivos estáticos (PDF, imagens, ícones...) não recebem a CSP de página: o visualizador
+      // de PDF do Chrome é bloqueado por `object-src 'none'`.
+      source: "/((?!_next/static|_next/image|media/|favicon.ico|icon|apple-icon|robots.txt|sitemap.xml|manifest.webmanifest|.*\\.(?:pdf|svg|png|jpg|jpeg|webp|avif|gif|ico|txt|xml|woff2?)$).*)",
       missing: [
         { type: "header", key: "next-router-prefetch" },
         { type: "header", key: "purpose", value: "prefetch" },

@@ -182,9 +182,9 @@ Itens entre colchetes no documento oficial, preenchíveis pelo painel sem tocar 
 - [ ] E-mail de contato, horário de atendimento, CNPJ, citar ou não Teresina → `/admin/configuracoes`
 - [ ] Prazo médio de entrega de site e modelo de suporte → `/admin/conteudo/service.sites` e `service.sistemas`
 - [ ] Prints e vídeo do Projeto HAIK Derme Viva → `/admin/projetos`
-- [ ] Checklist "10 sinais de que sua empresa tem um gargalo" (PDF) → slot `checklist.pdf`
+- [x] Checklist "10 sinais de que sua empresa tem um gargalo": um PDF padrão, montado só com frases oficiais do site, já é entregue em `/obrigado`, na captura de `/conteudos` e no pop-up de saída (`public/checklist-10-sinais-de-gargalo.pdf`, regenerável com `npm run checklist:build`). Para trocar por uma versão própria, envie o PDF no slot `checklist.pdf` em `/admin/midia/slots`.
 - [ ] Depoimentos e cases reais, com autorização → `/admin/depoimentos` e `/admin/projetos`
-- [ ] Revisão jurídica da Política de Privacidade e dos Termos (CNPJ, e-mail, prazo de retenção, foro)
+- [ ] Revisão jurídica da Política de Privacidade e dos Termos. CNPJ, e-mail e foro já são preenchidos automaticamente a partir de `/admin/configuracoes` (foro usa a cidade quando "citar a cidade" está ativo) e o prazo de retenção vem de `DATA_RETENTION_DAYS`; enquanto faltarem, aparecem entre colchetes na página.
 - [ ] Analytics: nenhum script de terceiros está instalado; se adicionar GA4/Meta Pixel, carregue apenas após o consentimento (`haik:consent`) e inclua os domínios na CSP (`src/proxy.ts`).
 
 ## Limitações e riscos conhecidos

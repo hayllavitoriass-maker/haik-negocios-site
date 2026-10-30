@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getContent } from "@/server/content";
+import { getContent, getMediaSlots } from "@/server/content";
 import { listPublicPosts } from "@/server/repos/public";
 import { pageMetadata, breadcrumbLd, JsonLd } from "@/lib/seo";
 import { MAIN_NAV, ROUTES } from "@/content/site";
@@ -8,6 +8,7 @@ import { TransitionLink } from "@/components/motion/TransitionLink";
 import { Reveal } from "@/components/motion/Reveal";
 import { Stagger } from "@/components/sections/Stagger";
 import { ChecklistForm } from "@/components/forms/ChecklistForm";
+import { DEFAULT_CHECKLIST_FILE } from "@/content/checklist";
 import { PageHero } from "@/components/sections/PageHero";
 import { PageSetup } from "@/components/sections/PageSetup";
 import { FinalCta } from "@/components/sections/FinalCta";
@@ -24,7 +25,8 @@ const NAV_LABEL = MAIN_NAV.find((i) => i.href === ROUTES.conteudos)?.label ?? "C
 type Props = { searchParams: Promise<{ categoria?: string | string[] }> };
 
 export default async function ConteudosPage({ searchParams }: Props) {
-  const [{ categoria }, t, copy] = await Promise.all([searchParams, getContent("contents"), getContent("microcopy")]);
+  const [{ categoria }, t, copy, slots] = await Promise.all([searchParams, getContent("contents"), getContent("microcopy"), getMediaSlots()]);
+  const checklistFile = slots["checklist.pdf"] ?? DEFAULT_CHECKLIST_FILE;
   const requested = Array.isArray(categoria) ? categoria[0] : categoria;
   const category = requested && t.categories.includes(requested) ? requested : undefined;
   const posts = await listPublicPosts(category);
@@ -85,7 +87,7 @@ export default async function ConteudosPage({ searchParams }: Props) {
       <Section id="checklist" className="pt-0">
         <Container>
           <Reveal>
-            <ChecklistForm content={t.capture} source="conteudos" sending={copy.sending} />
+            <ChecklistForm content={t.capture} source="conteudos" sending={copy.sending} download={checklistFile} />
           </Reveal>
         </Container>
       </Section>

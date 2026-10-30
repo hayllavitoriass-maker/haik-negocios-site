@@ -18,7 +18,8 @@
     "data:prune": "tsx scripts/prune-data.ts",
     "data:export": "tsx scripts/export-leads.ts",
     "check": "npm run typecheck && npm run lint && npm run test",
-    "lighthouse": "node scripts/lighthouse.mjs"
+    "lighthouse": "node scripts/lighthouse.mjs",
+    "checklist:build": "node scripts/build-checklist.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1157.0",

@@ -10,7 +10,7 @@ export const legalContent = {
     updatedAt: "2026-10-27",
     body: `## 1. Quem somos
 
-A controladora dos dados pessoais tratados neste site é a **HAIK Negócios** (CNPJ: [CNPJ]), com atendimento 100% online para todo o Brasil. Para assuntos de privacidade, fale com a gente pelo e-mail [E-MAIL DE CONTATO] ou pelo WhatsApp (86) 99425-8011.
+A controladora dos dados pessoais tratados neste site é a **HAIK Negócios** (CNPJ: {{CNPJ}}), com atendimento 100% online para todo o Brasil. Para assuntos de privacidade, fale com a gente pelo e-mail {{EMAIL}} ou pelo WhatsApp (86) 99425-8011.
 
 ## 2. Quais dados coletamos
 
@@ -34,11 +34,11 @@ Os dados podem ser tratados por fornecedores que operam em nosso nome: hospedage
 
 ## 5. Por quanto tempo guardamos
 
-Dados de contato e diagnóstico ficam armazenados enquanto durar o relacionamento comercial e por até [PRAZO, ex.: 24 meses] após o último contato, salvo obrigação legal de guarda por prazo maior. Você pode pedir a exclusão a qualquer momento.
+Dados de contato e diagnóstico ficam armazenados enquanto durar o relacionamento comercial e por até {{RETENCAO}} após o último contato, salvo obrigação legal de guarda por prazo maior. Você pode pedir a exclusão a qualquer momento.
 
 ## 6. Seus direitos
 
-Conforme a LGPD, você pode solicitar: confirmação da existência de tratamento, acesso, correção, anonimização, portabilidade, eliminação, informação sobre compartilhamento e revogação do consentimento. Para exercer esses direitos, escreva para [E-MAIL DE CONTATO]. Respondemos em até 15 dias.
+Conforme a LGPD, você pode solicitar: confirmação da existência de tratamento, acesso, correção, anonimização, portabilidade, eliminação, informação sobre compartilhamento e revogação do consentimento. Para exercer esses direitos, escreva para {{EMAIL}}. Respondemos em até 15 dias.
 
 ## 7. Segurança
 
@@ -77,6 +77,6 @@ O tratamento de dados pessoais é descrito na nossa Política de Privacidade.
 
 ## 7. Foro
 
-Fica eleito o foro da comarca de [CIDADE/UF] para dirimir quaisquer controvérsias, com renúncia a qualquer outro, por mais privilegiado que seja.`,
+Fica eleito o foro da comarca de {{FORO}} para dirimir quaisquer controvérsias, com renúncia a qualquer outro, por mais privilegiado que seja.`,
   },
 };

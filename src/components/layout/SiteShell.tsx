@@ -41,7 +41,7 @@ type Props = {
   whatsappHref: string;
   copy: typeof microcopy;
   cookieBanner: boolean;
-  exitPopup?: { placeholder: string; success: string } | null;
+  exitPopup?: { placeholder: string; success: string; download: { url: string; filename: string; label: string } } | null;
   preview?: boolean;
 };
 
@@ -66,7 +66,7 @@ export function SiteShell({ children, whatsappHref, copy, cookieBanner, exitPopu
           <MobileBar whatsappHref={whatsappHref} label={copy.mobileBar} />
           {cookieBanner && <CookieConsent body={copy.cookie.body} accept={copy.cookie.accept} decline={copy.cookie.decline} more={copy.cookie.more} />}
           {exitPopup && (
-            <ExitPopup body={copy.exitPopup.body} accept={copy.exitPopup.accept} decline={copy.exitPopup.decline} placeholder={exitPopup.placeholder} success={exitPopup.success} />
+            <ExitPopup body={copy.exitPopup.body} accept={copy.exitPopup.accept} decline={copy.exitPopup.decline} placeholder={exitPopup.placeholder} success={exitPopup.success} download={exitPopup.download} />
           )}
           {preview && <PreviewBar />}
         </PixelTransitionProvider>

@@ -8,12 +8,19 @@ import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/icons";
 import { cn } from "@/lib/cn";
 
-type Props = { content: (typeof contentsContent)["capture"]; source: string; sending: string; className?: string };
+type Props = {
+  content: (typeof contentsContent)["capture"];
+  source: string;
+  sending: string;
+  className?: string;
+  /** PDF do checklist (slot do painel ou arquivo padrão). */
+  download: { url: string; filename: string };
+};
 
 const initial: FormState = { status: "idle" };
 
 /** Captura do checklist: um campo de e-mail, mensagem de sucesso oficial. */
-export function ChecklistForm({ content, source, sending, className }: Props) {
+export function ChecklistForm({ content, source, sending, className, download }: Props) {
   const [state, formAction, pending] = useActionState(subscribeChecklist, initial);
   const id = useId();
   const error = state.status === "error" ? (state.fieldErrors?.email ?? state.message) : undefined;
@@ -30,10 +37,16 @@ export function ChecklistForm({ content, source, sending, className }: Props) {
           <p className="font-display text-[18px] font-medium text-grey-300">{content.body}</p>
         </div>
         {state.status === "success" ? (
-          <p role="status" className="glass-panel is-on flex items-start gap-3 p-5 text-[15px] leading-[1.5]">
-            <Icon name="check" className="mt-[2px] size-4 shrink-0 text-red-300" strokeWidth={2.5} />
-            {content.success}
-          </p>
+          <div role="status" className="glass-panel is-on grid gap-4 p-5 text-[15px] leading-[1.5]">
+            <p className="flex items-start gap-3">
+              <Icon name="check" className="mt-[2px] size-4 shrink-0 text-red-300" strokeWidth={2.5} />
+              {content.success}
+            </p>
+            <a href={download.url} download={download.filename} className="inline-flex h-11 w-fit items-center gap-3 rounded-xs bg-red px-4 text-[15px] font-medium text-white hover:bg-white hover:text-ink">
+              {content.download}
+              <Icon name="download" className="size-4" />
+            </a>
+          </div>
         ) : (
           <form action={formAction} noValidate aria-busy={pending} className="grid gap-3">
             <AntiSpamFields />

@@ -8,11 +8,18 @@ import { breadcrumbLd, JsonLd } from "@/lib/seo";
 import { PageSetup } from "./PageSetup";
 import { Notice } from "./primitives";
 import { formatDate } from "./format";
+import { fillLegalTokens, hasPendingLegalFields, type LegalVars } from "@/lib/legal";
 
 type Doc = { title: string; updatedAt: string; body: string };
 
-/** Página legal (Privacidade / Termos): título, data de revisão, aviso de minuta e corpo em Markdown. */
-export function LegalPage({ doc, reviewNotice, path, eyebrow }: { doc: Doc; reviewNotice: string; path: string; eyebrow: string }) {
+/**
+ * Página legal (Privacidade / Termos): título, data de revisão, aviso de minuta e corpo em
+ * Markdown. CNPJ, e-mail, prazo de retenção e foro vêm das configurações; o que faltar
+ * aparece entre colchetes para o revisor.
+ */
+export function LegalPage({ doc, reviewNotice, path, eyebrow, vars }: { doc: Doc; reviewNotice: string; path: string; eyebrow: string; vars: LegalVars }) {
+  const body = fillLegalTokens(doc.body, vars);
+  const pending = hasPendingLegalFields(body);
   return (
     <>
       <PageSetup formation="drift" intensity={0.2} />
@@ -32,11 +39,14 @@ export function LegalPage({ doc, reviewNotice, path, eyebrow }: { doc: Doc; revi
           </header>
           <div className="grid gap-10">
             <Reveal y={16}>
-              <Notice title="Minuta">{reviewNotice}</Notice>
+              <Notice title="Minuta">
+                {reviewNotice}
+                {pending && " Os campos entre colchetes ainda não foram informados em Configurações."}
+              </Notice>
             </Reveal>
             <Reveal y={24} className="rounded-md bg-white p-6 shadow-[var(--shadow-card-light)] hairline-light sm:p-10">
               <Prose className="[&_h2:first-child]:mt-0">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>{doc.body}</ReactMarkdown>
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>{body}</ReactMarkdown>
               </Prose>
             </Reveal>
           </div>

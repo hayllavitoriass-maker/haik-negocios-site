@@ -12,7 +12,21 @@ const SEEN_KEY = "haik:exit-popup";
  * Pop-up de saída (opcional, só no computador, uma vez por visitante): oferece o checklist.
  * Dispara quando o ponteiro sai pelo topo da janela, depois de alguns segundos na página.
  */
-export function ExitPopup({ body, accept, decline, placeholder, success }: { body: string; accept: string; decline: string; placeholder: string; success: string }) {
+export function ExitPopup({
+  body,
+  accept,
+  decline,
+  placeholder,
+  success,
+  download,
+}: {
+  body: string;
+  accept: string;
+  decline: string;
+  placeholder: string;
+  success: string;
+  download: { url: string; filename: string; label: string };
+}) {
   const [open, setOpen] = useState(false);
   const [state, action, pending] = useActionState<FormState, FormData>(subscribeChecklist, { status: "idle" });
   const armed = useRef(false);
@@ -54,7 +68,13 @@ export function ExitPopup({ body, accept, decline, placeholder, success }: { bod
           {body}
         </h2>
         {state.status === "success" ? (
-          <p className="text-[15px] text-grey-600">{success}</p>
+          <div className="grid gap-4">
+            <p className="text-[15px] text-grey-600">{success}</p>
+            <a href={download.url} download={download.filename} className="inline-flex h-11 w-fit items-center gap-3 rounded-xs bg-red px-4 text-[15px] font-medium text-white hover:bg-ink">
+              {download.label}
+              <Icon name="download" className="size-4" />
+            </a>
+          </div>
         ) : (
           <form action={action} className="grid gap-3">
             <AntiSpamFields />

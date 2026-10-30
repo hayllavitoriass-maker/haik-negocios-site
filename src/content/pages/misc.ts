@@ -50,7 +50,8 @@ export const contentsContent = {
     body: "“10 sinais de que sua empresa tem um gargalo”",
     placeholder: "Seu melhor e-mail",
     cta: "Quero o checklist",
-    success: "Pronto! Você receberá o checklist assim que ele estiver disponível.",
+    success: "Pronto! Seu checklist está liberado: baixe agora mesmo.",
+    download: "Baixar o checklist",
   },
 };
 

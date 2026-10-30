@@ -9,7 +9,7 @@ import { Icon } from "@/components/ui/icons";
 import { SplitHeading } from "@/components/motion/SplitHeading";
 import { Reveal } from "@/components/motion/Reveal";
 import { PageSetup } from "@/components/sections/PageSetup";
-import { Notice } from "@/components/sections/primitives";
+import { DEFAULT_CHECKLIST_FILE } from "@/content/checklist";
 
 export async function generateMetadata(): Promise<Metadata> {
   const seo = await getContent("seo");
@@ -18,7 +18,8 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function ObrigadoPage() {
   const [t, footer, slots, settings] = await Promise.all([getContent("thanks"), getContent("footer"), getMediaSlots(), getSettings()]);
-  const checklist = slots["checklist.pdf"];
+  // PDF enviado pelo painel (slot checklist.pdf) ou o checklist padrão gerado dos textos oficiais.
+  const checklist = slots["checklist.pdf"] ?? DEFAULT_CHECKLIST_FILE;
   const whatsapp = `https://wa.me/${settings.whatsappNumber}?text=${encodeURIComponent(WHATSAPP_CONTACT_MESSAGE)}`;
 
   return (
@@ -35,7 +36,7 @@ export default async function ObrigadoPage() {
               <p className="max-w-[56ch] text-intro text-[var(--fg-muted)]">{t.body}</p>
             </Reveal>
             <Reveal y={20} delay={0.5}>
-              {checklist ? (
+              {(
                 <a
                   href={checklist.url}
                   download={checklist.filename}
@@ -44,8 +45,6 @@ export default async function ObrigadoPage() {
                   <span>{t.cta}</span>
                   <Icon name="download" className="size-4 transition-transform duration-500 group-hover:translate-y-0.5" />
                 </a>
-              ) : (
-                <Notice className="max-w-[60ch]">{t.checklistPending}</Notice>
               )}
             </Reveal>
           </div>

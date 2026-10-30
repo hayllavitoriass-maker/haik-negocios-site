@@ -1,8 +1,9 @@
 import { SiteShell } from "@/components/layout/SiteShell";
 import { Footer } from "@/components/layout/Footer";
-import { getContent, getSettings, isPreview } from "@/server/content";
+import { getContent, getMediaSlots, getSettings, isPreview } from "@/server/content";
 import { BRAND } from "@/content/site";
 import { JsonLd } from "@/lib/seo";
+import { DEFAULT_CHECKLIST_FILE } from "@/content/checklist";
 
 export const dynamic = "force-dynamic";
 
@@ -11,13 +12,15 @@ export const dynamic = "force-dynamic";
  * (renderização dinâmica também é exigida pela CSP com nonce).
  */
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
-  const [footer, copy, settings, contents, preview] = await Promise.all([
+  const [footer, copy, settings, contents, preview, slots] = await Promise.all([
     getContent("footer"),
     getContent("microcopy"),
     getSettings(),
     getContent("contents"),
     isPreview(),
+    getMediaSlots(),
   ]);
+  const checklistFile = slots["checklist.pdf"] ?? DEFAULT_CHECKLIST_FILE;
   const whatsappHref = `https://wa.me/${settings.whatsappNumber}`;
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
@@ -49,7 +52,11 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
         whatsappHref={whatsappHref}
         copy={copy}
         cookieBanner={settings.cookieBannerEnabled}
-        exitPopup={settings.exitPopupEnabled ? { placeholder: contents.capture.placeholder, success: contents.capture.success } : null}
+        exitPopup={
+          settings.exitPopupEnabled
+            ? { placeholder: contents.capture.placeholder, success: contents.capture.success, download: { ...checklistFile, label: contents.capture.download } }
+            : null
+        }
         preview={preview}
       >
         {children}
